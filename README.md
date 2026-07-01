@@ -18,7 +18,7 @@ The common backtest window is determined at runtime from the data itself (the la
 
 ![Dashboard Overview](images/dashboard_overview.png)
 
-The sidebar lets the user choose an allocation archetype, a start capital, and an investment horizon in years. The example above shows the conservative archetype with a $100,000 start capital over a 20-year horizon. The main view shows that archetype's historical risk/return metrics (annually rebalanced) as headline figures, followed by the Monte Carlo terminal-wealth projection for the chosen capital and horizon, with the simulated wealth distribution plotted as a histogram. A second section below (not shown here) adds the stock-bond correlation regime chart, a buy-and-hold-vs-rebalanced comparison, and a return-assumption sensitivity check.
+The example above shows the conservative archetype with a $100,000 start capital over a 20-year horizon. The main view shows that archetype's historical risk/return metrics (annually rebalanced) as headline figures, followed by the Monte Carlo terminal-wealth projection for the chosen capital and horizon, with the simulated wealth distribution plotted as a histogram. A second section below (not shown here) adds the stock-bond correlation regime chart, a buy-and-hold-vs-rebalanced comparison, and a return-assumption sensitivity check.
 
 ---
 
