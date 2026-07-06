@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "mypy"]
+dev = ["pytest", "mypy", "pandas-stubs"]
 
 [tool.setuptools]
 packages = ["core"]
