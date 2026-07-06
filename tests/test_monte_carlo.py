@@ -14,12 +14,22 @@ Run with: python -m pytest tests/test_monte_carlo.py
 import os
 import sys
 
-CORE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "core")
+import pytest
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(PROJECT_ROOT, "data", "portfolio_data.db")
+if not os.path.exists(DB_PATH):
+    # data/portfolio_data.db is gitignored (reproducible via data/db_pull_v1.py, not
+    # redistributed) and monte_carlo.py loads it at import time — skip cleanly instead
+    # of crashing, e.g. in a fresh CI checkout that has no local database.
+    pytest.skip(f"portfolio_data.db not found at {DB_PATH} — run data/db_pull_v1.py first",
+                allow_module_level=True)
+
+CORE_DIR = os.path.join(PROJECT_ROOT, "core")
 if CORE_DIR not in sys.path:
     sys.path.insert(0, CORE_DIR)
 
 import numpy as np
-import pytest
 
 from monte_carlo import simulate_terminal_wealth, simulate_wealth_paths_percentiles
 

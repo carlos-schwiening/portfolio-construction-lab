@@ -48,13 +48,49 @@ on top of these functions; running this file directly is unaffected.
 import sys
 import os
 import sqlite3
+from typing import Optional, TypedDict, cast
 
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 import numpy as np
 import pandas as pd
 
-from allocations import get_normalized_weights, list_archetypes, PROXY_LABELS
+try:
+    from .allocations import get_normalized_weights, list_archetypes, PROXY_LABELS
+except ImportError:  # running directly as a script (python core/risk_engine.py)
+    from allocations import get_normalized_weights, list_archetypes, PROXY_LABELS  # type: ignore[import-not-found,no-redef]
+
+
+class AggregateMetrics(TypedDict):
+    cagr: float
+    annualized_vol: float
+    max_drawdown: float
+    var_95: float
+    cvar_95: float
+    worst_year: int
+    worst_year_return: float
+    year_2008_return: Optional[float]
+
+
+class ArchetypeMetrics(TypedDict):
+    buy_and_hold: AggregateMetrics
+    rebalanced: AggregateMetrics
+
+
+class PortfoliosResult(TypedDict):
+    bh_returns_by_archetype: dict[str, pd.Series]
+    bh_weights_by_archetype: dict[str, pd.DataFrame]
+    rb_returns_by_archetype: dict[str, pd.Series]
+    df_comparison: pd.DataFrame
+    df_bh_vs_rb: pd.DataFrame
+
+
+class DriftDemo(TypedDict):
+    archetype: str
+    target_equity_weight: float
+    final_equity_weight: float
+    max_equity_weight: float
+    max_equity_weight_date: pd.Timestamp
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DB_PATH      = os.path.join(PROJECT_ROOT, "data", "portfolio_data.db")
@@ -73,12 +109,12 @@ ARCHETYPE_ORDER = list_archetypes()  # conservative -> growth, as defined in all
 
 
 # region Load Data
-def load_price_matrix(db_path, tickers):
+def load_price_matrix(db_path: str, tickers: list[str]) -> pd.DataFrame:
     """Loads adj_close for the given tickers from the prices table, pivoted to date x symbol."""
     conn = sqlite3.connect(db_path)
     placeholders = ",".join("?" * len(tickers))
     query = f"SELECT symbol, date, adj_close FROM prices WHERE symbol IN ({placeholders})"
-    df_long = pd.read_sql_query(query, conn, params=tickers)
+    df_long = pd.read_sql_query(query, conn, params=tickers)  # type: ignore[arg-type]
     conn.close()
 
     df_long["date"] = pd.to_datetime(df_long["date"])
@@ -86,7 +122,9 @@ def load_price_matrix(db_path, tickers):
     return price_matrix
 
 
-def load_common_daily_returns(db_path=DB_PATH, tickers=ACTIVE_TICKERS):
+def load_common_daily_returns(
+    db_path: str = DB_PATH, tickers: list[str] = ACTIVE_TICKERS,
+) -> tuple[pd.DataFrame, pd.Timestamp, pd.Series]:
     """
     Loads the 9 active buckets, determines the common backtest window at
     runtime (latest per-ticker inception date), and returns daily returns
@@ -109,7 +147,9 @@ def load_common_daily_returns(db_path=DB_PATH, tickers=ACTIVE_TICKERS):
 
 
 # region Portfolio Construction (Buy-and-Hold vs Annual Rebalancing)
-def compute_portfolio_path(weights, returns, annual_rebalance):
+def compute_portfolio_path(
+    weights: dict[str, float], returns: pd.DataFrame, annual_rebalance: bool,
+) -> tuple[pd.Series, pd.DataFrame]:
     """
     Builds the daily portfolio return series and the daily realized (drifting)
     weights for one archetype.
@@ -125,7 +165,7 @@ def compute_portfolio_path(weights, returns, annual_rebalance):
     tickers = list(returns.columns)
     target_weights = np.array([weights[t] for t in tickers])
     returns_arr = returns.values
-    dates = returns.index
+    dates = cast(pd.DatetimeIndex, returns.index)
     years = dates.year.values
 
     n_days, n_assets = returns_arr.shape
@@ -149,7 +189,7 @@ def compute_portfolio_path(weights, returns, annual_rebalance):
     return portfolio_returns_series, weights_over_time_df
 
 
-def compute_aggregate_metrics(portfolio_returns):
+def compute_aggregate_metrics(portfolio_returns: pd.Series) -> AggregateMetrics:
     """CAGR, annualized vol, max drawdown, VaR/CVaR(95%), worst year, 2008 return."""
     cumulative_path = (1 + portfolio_returns).cumprod()
     n_trading_days = len(portfolio_returns)
@@ -165,8 +205,9 @@ def compute_aggregate_metrics(portfolio_returns):
     var_95 = portfolio_returns.quantile(1 - VAR_CONFIDENCE)
     cvar_95 = portfolio_returns[portfolio_returns <= var_95].mean()
 
-    calendar_year_returns = (1 + portfolio_returns).groupby(portfolio_returns.index.year).prod() - 1
-    worst_year = calendar_year_returns.idxmin()
+    portfolio_dates = cast(pd.DatetimeIndex, portfolio_returns.index)
+    calendar_year_returns = (1 + portfolio_returns).groupby(portfolio_dates.year).prod() - 1
+    worst_year = int(calendar_year_returns.idxmin())
     worst_year_return = calendar_year_returns.min()
     year_2008_return = calendar_year_returns.get(2008, None)
 
@@ -182,7 +223,9 @@ def compute_aggregate_metrics(portfolio_returns):
     }
 
 
-def compute_archetype_portfolios(archetype, daily_returns):
+def compute_archetype_portfolios(
+    archetype: str, daily_returns: pd.DataFrame,
+) -> tuple[pd.Series, pd.DataFrame, pd.Series]:
     """Buy-and-hold and rebalanced portfolio paths for one archetype. Returns (bh_returns, bh_weights, rb_returns)."""
     weights = get_normalized_weights(archetype)
     bh_returns, bh_weights = compute_portfolio_path(weights, daily_returns, annual_rebalance=False)
@@ -190,7 +233,7 @@ def compute_archetype_portfolios(archetype, daily_returns):
     return bh_returns, bh_weights, rb_returns
 
 
-def get_archetype_metrics(archetype, daily_returns):
+def get_archetype_metrics(archetype: str, daily_returns: pd.DataFrame) -> ArchetypeMetrics:
     """
     Single-archetype entry point for callers (e.g. a dashboard) that only need
     one archetype's numbers. Returns a dict:
@@ -205,7 +248,9 @@ def get_archetype_metrics(archetype, daily_returns):
     }
 
 
-def compute_all_portfolios(daily_returns, archetype_order=ARCHETYPE_ORDER):
+def compute_all_portfolios(
+    daily_returns: pd.DataFrame, archetype_order: list[str] = ARCHETYPE_ORDER,
+) -> PortfoliosResult:
     """
     Runs compute_archetype_portfolios for every archetype and assembles the
     buy-and-hold comparison table and the buy-and-hold-vs-rebalanced table.
@@ -230,13 +275,17 @@ def compute_all_portfolios(daily_returns, archetype_order=ARCHETYPE_ORDER):
 
         bh_comparison_rows.append({"archetype": archetype, **bh_metrics})
 
+        # Dynamic key access below — treat as a plain dict for mypy (TypedDict
+        # only allows literal-string key lookups).
+        bh_metrics_dyn = cast(dict[str, float], bh_metrics)
+        rb_metrics_dyn = cast(dict[str, float], rb_metrics)
         for metric in ["cagr", "annualized_vol", "max_drawdown", "cvar_95"]:
             bh_vs_rb_rows.append({
                 "archetype": archetype,
                 "metric": metric,
-                "buy_and_hold": bh_metrics[metric],
-                "rebalanced": rb_metrics[metric],
-                "diff_rb_minus_bh": rb_metrics[metric] - bh_metrics[metric],
+                "buy_and_hold": bh_metrics_dyn[metric],
+                "rebalanced": rb_metrics_dyn[metric],
+                "diff_rb_minus_bh": rb_metrics_dyn[metric] - bh_metrics_dyn[metric],
             })
 
     df_comparison = pd.DataFrame(bh_comparison_rows).set_index("archetype").loc[archetype_order]
@@ -253,7 +302,9 @@ def compute_all_portfolios(daily_returns, archetype_order=ARCHETYPE_ORDER):
 
 
 # region Rolling Metrics (Buy-and-Hold)
-def get_rolling_vol_summary(bh_returns_by_archetype, archetype_order=ARCHETYPE_ORDER):
+def get_rolling_vol_summary(
+    bh_returns_by_archetype: dict[str, pd.Series], archetype_order: list[str] = ARCHETYPE_ORDER,
+) -> pd.DataFrame:
     """Min/max/current rolling 252-day annualized vol per archetype (buy-and-hold). Returns a DataFrame."""
     rows = []
     for archetype in archetype_order:
@@ -268,7 +319,7 @@ def get_rolling_vol_summary(bh_returns_by_archetype, archetype_order=ARCHETYPE_O
     return pd.DataFrame(rows).set_index("archetype").loc[archetype_order]
 
 
-def value_at_or_before(series, date_str):
+def value_at_or_before(series: pd.Series, date_str: str) -> tuple[Optional[pd.Timestamp], Optional[float]]:
     """Last value of series at or before date_str, or (None, None) if none exists yet."""
     sub = series.loc[:date_str]
     if sub.empty:
@@ -276,12 +327,14 @@ def value_at_or_before(series, date_str):
     return sub.index[-1], sub.iloc[-1]
 
 
-def get_spy_agg_rolling_correlation(daily_returns):
+def get_spy_agg_rolling_correlation(daily_returns: pd.DataFrame) -> pd.Series:
     """Full rolling 252-day SPY-AGG correlation time series. Portfolio-independent. Returns a Series indexed by date."""
     return daily_returns["SPY"].rolling(ROLLING_WINDOW).corr(daily_returns["AGG"]).dropna()
 
 
-def get_spy_agg_correlation_checkpoints(daily_returns, checkpoint_years=CORRELATION_CHECKPOINT_YEARS):
+def get_spy_agg_correlation_checkpoints(
+    daily_returns: pd.DataFrame, checkpoint_years: list[int] = CORRELATION_CHECKPOINT_YEARS,
+) -> pd.DataFrame:
     """Rolling 252-day SPY-AGG correlation at year-end checkpoints + current. Portfolio-independent. Returns a DataFrame."""
     rolling_spy_agg_corr = get_spy_agg_rolling_correlation(daily_returns)
 
@@ -303,7 +356,11 @@ def get_spy_agg_correlation_checkpoints(daily_returns, checkpoint_years=CORRELAT
 
 
 # region Drift Demonstration (Buy-and-Hold Equity Weight)
-def get_drift_demo(bh_weights_by_archetype, archetype=DRIFT_DEMO_ARCHETYPE, equity_tickers=EQUITY_TICKERS):
+def get_drift_demo(
+    bh_weights_by_archetype: dict[str, pd.DataFrame],
+    archetype: str = DRIFT_DEMO_ARCHETYPE,
+    equity_tickers: list[str] = EQUITY_TICKERS,
+) -> DriftDemo:
     """
     How far the realized equity weight (sum of equity_tickers) drifted from
     target under buy-and-hold (no resets) for one archetype. Returns a dict.
@@ -319,7 +376,7 @@ def get_drift_demo(bh_weights_by_archetype, archetype=DRIFT_DEMO_ARCHETYPE, equi
         "target_equity_weight": target_equity_weight,
         "final_equity_weight": equity_weight_series.iloc[-1],
         "max_equity_weight": equity_weight_series.max(),
-        "max_equity_weight_date": equity_weight_series.idxmax(),
+        "max_equity_weight_date": cast(pd.Timestamp, equity_weight_series.idxmax()),
     }
 # endregion
 

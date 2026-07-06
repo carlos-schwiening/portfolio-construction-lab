@@ -135,9 +135,14 @@ Python 3.14 · pandas · numpy · streamlit · plotly · SQLite
 ```bash
 git clone https://github.com/carlos-schwiening/portfolio-construction-lab
 cd portfolio-construction-lab
-pip install -r requirements.txt
+pip install -e .
 streamlit run app.py
 ```
+
+This installs the project as a package (see `pyproject.toml`), so `core/` can
+be imported cleanly (`from core.risk_engine import ...`) without path hacks.
+`pip install -r requirements.txt` still works too if you don't want to install
+the package itself.
 
 The dashboard reads from a local SQLite database (`data/portfolio_data.db`) that is not included in this repository. To populate it, set an FMP API key and run `python data/db_pull_v1.py` first — see Data below.
 

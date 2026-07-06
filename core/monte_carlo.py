@@ -32,14 +32,19 @@ No charts here (come with the dashboard). No DB writes.
 
 # region Imports & Configuration
 import sys
+from typing import Literal, Union, cast, overload
 
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 import numpy as np
 import pandas as pd
 
-from allocations import get_normalized_weights, list_archetypes
-from risk_engine import load_common_daily_returns, compute_portfolio_path
+try:
+    from .allocations import get_normalized_weights, list_archetypes
+    from .risk_engine import load_common_daily_returns, compute_portfolio_path
+except ImportError:  # running directly as a script (python core/monte_carlo.py)
+    from allocations import get_normalized_weights, list_archetypes  # type: ignore[import-not-found,no-redef]
+    from risk_engine import load_common_daily_returns, compute_portfolio_path  # type: ignore[import-not-found,no-redef]
 
 MONTHS_PER_YEAR = 12
 
@@ -58,7 +63,7 @@ daily_returns, common_start, first_valid_per_ticker = load_common_daily_returns(
 
 
 # region Rebalanced Portfolio -> Monthly Returns
-def get_historical_monthly_returns(archetype):
+def get_historical_monthly_returns(archetype: str) -> np.ndarray:
     """
     Rebalanced (annual_rebalance=True) daily returns for the archetype, via
     core/risk_engine.py's compute_portfolio_path, compounded to monthly returns.
@@ -68,13 +73,15 @@ def get_historical_monthly_returns(archetype):
         weights, daily_returns, annual_rebalance=True
     )
     monthly_returns = (1 + rebalanced_daily_returns).resample("ME").prod() - 1
-    return monthly_returns.values
+    return np.asarray(monthly_returns.values)
 # endregion
 
 
 # region Monte Carlo Simulation
-def _simulate_block_bootstrap_paths(archetype, start_capital, horizon_years, n_paths,
-                                     block_months, annual_return_haircut, seed):
+def _simulate_block_bootstrap_paths(
+    archetype: str, start_capital: float, horizon_years: int, n_paths: int,
+    block_months: int, annual_return_haircut: float, seed: int,
+) -> np.ndarray:
     """
     Shared block-bootstrap core, reused by simulate_terminal_wealth() and
     simulate_wealth_paths_percentiles() so both stay on the identical
@@ -111,9 +118,27 @@ def _simulate_block_bootstrap_paths(archetype, start_capital, horizon_years, n_p
     return wealth_paths
 
 
-def simulate_terminal_wealth(archetype, start_capital, horizon_years, n_paths=10000,
-                              block_months=6, annual_return_haircut=0.0, seed=42,
-                              return_paths=False):
+@overload
+def simulate_terminal_wealth(
+    archetype: str, start_capital: float, horizon_years: int, n_paths: int = 10000,
+    block_months: int = 6, annual_return_haircut: float = 0.0, seed: int = 42,
+    return_paths: Literal[False] = False,
+) -> np.ndarray: ...
+
+
+@overload
+def simulate_terminal_wealth(
+    archetype: str, start_capital: float, horizon_years: int, n_paths: int = 10000,
+    block_months: int = 6, annual_return_haircut: float = 0.0, seed: int = 42,
+    *, return_paths: Literal[True],
+) -> tuple[np.ndarray, pd.DataFrame]: ...
+
+
+def simulate_terminal_wealth(
+    archetype: str, start_capital: float, horizon_years: int, n_paths: int = 10000,
+    block_months: int = 6, annual_return_haircut: float = 0.0, seed: int = 42,
+    return_paths: bool = False,
+) -> Union[np.ndarray, tuple[np.ndarray, pd.DataFrame]]:
     """
     Block-bootstrap Monte Carlo projection of terminal wealth (see
     _simulate_block_bootstrap_paths for the methodology).
@@ -143,8 +168,10 @@ def simulate_terminal_wealth(archetype, start_capital, horizon_years, n_paths=10
     return terminal_wealth, percentile_paths_df
 
 
-def simulate_wealth_paths_percentiles(archetype, start_capital, horizon_years, n_paths=10000,
-                                       block_months=6, annual_return_haircut=0.0, seed=42):
+def simulate_wealth_paths_percentiles(
+    archetype: str, start_capital: float, horizon_years: int, n_paths: int = 10000,
+    block_months: int = 6, annual_return_haircut: float = 0.0, seed: int = 42,
+) -> pd.DataFrame:
     """
     Full monthly wealth-path percentiles (P5/P25/Median/P75/P95) across all
     simulated paths, for a fan chart of projected wealth over time. Same
@@ -262,9 +289,10 @@ if __name__ == "__main__":
           "so the historical mean used for haircut=0 is likely optimistic going forward — exactly why "
           "the haircut sensitivity in TEIL C exists.")
 
-    median_diff = df_sensitivity.loc[f"{DEMO_HAIRCUT:.0%} annual haircut", "median"] - df_sensitivity.loc["0pp (historical mean)", "median"]
-    shortfall_diff = (df_sensitivity.loc[f"{DEMO_HAIRCUT:.0%} annual haircut", "shortfall_prob"]
-                       - df_sensitivity.loc["0pp (historical mean)", "shortfall_prob"])
+    median_diff = cast(float, df_sensitivity.loc[f"{DEMO_HAIRCUT:.0%} annual haircut", "median"]) - cast(
+        float, df_sensitivity.loc["0pp (historical mean)", "median"])
+    shortfall_diff = cast(float, df_sensitivity.loc[f"{DEMO_HAIRCUT:.0%} annual haircut", "shortfall_prob"]) - cast(
+        float, df_sensitivity.loc["0pp (historical mean)", "shortfall_prob"])
     print(f">>> A {DEMO_HAIRCUT:.0%} annual return haircut moves the '{DEMO_DETAIL_ARCHETYPE}' median terminal "
           f"wealth by {median_diff:+,.0f} and the shortfall probability by {shortfall_diff:+.2%} — a small "
           "annual assumption change compounds into a large 20-year outcome difference.")
