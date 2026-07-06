@@ -17,14 +17,14 @@ list_archetypes() reflects the actual data, not a hardcoded count.
 
 # region Imports & Configuration
 import sys
-sys.stdout.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
 TOLERANCE = 1e-9
 # endregion
 
 
 # region Parameters — Proxy Labels + Raw Weights
-PROXY_LABELS = {
+PROXY_LABELS: dict[str, str] = {
     "SPY": "US Stocks", "EFA": "Non-US Developed", "EEM": "EM Stocks",
     "AGG": "Core Bonds", "TLT": "Long Treasury", "HYG": "High Yield",
     "EMB": "EM Bond", "TIP": "TIPS", "BIL": "Cash",
@@ -32,7 +32,7 @@ PROXY_LABELS = {
 
 # Raw weights in percentage points, before renormalization (do not sum to 100
 # for every archetype since Real Assets/Alternatives were stripped out).
-RAW_WEIGHTS = {
+RAW_WEIGHTS: dict[str, dict[str, float]] = {
     "conservative": {"SPY": 12.5, "EFA": 0,  "EEM": 0, "AGG": 53, "TLT": 4, "HYG": 18.5, "EMB": 10, "TIP": 2, "BIL": 0},
     "moderate":     {"SPY": 27,   "EFA": 10, "EEM": 2, "AGG": 28, "TLT": 2, "HYG": 4,    "EMB": 5,  "TIP": 0, "BIL": 7},
     "balanced":     {"SPY": 32,   "EFA": 25, "EEM": 4, "AGG": 16, "TLT": 1, "HYG": 2,    "EMB": 4,  "TIP": 3, "BIL": 0},
@@ -42,7 +42,7 @@ RAW_WEIGHTS = {
 
 
 # region Functions
-def get_normalized_weights(archetype):
+def get_normalized_weights(archetype: str) -> dict[str, float]:
     """Returns bucket weights for one archetype, scaled so they sum exactly to 1.0."""
     if archetype not in RAW_WEIGHTS:
         raise KeyError(f"Unknown archetype '{archetype}'. Available: {list(RAW_WEIGHTS.keys())}")
@@ -58,7 +58,7 @@ def get_normalized_weights(archetype):
     return normalized
 
 
-def list_archetypes():
+def list_archetypes() -> list[str]:
     """Returns the archetype keys actually defined in RAW_WEIGHTS."""
     return list(RAW_WEIGHTS.keys())
 # endregion
