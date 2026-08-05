@@ -1,5 +1,7 @@
 # Portfolio Construction Lab
 
+[![CI](https://github.com/carlos-schwiening/portfolio-construction-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/carlos-schwiening/portfolio-construction-lab/actions/workflows/ci.yml)
+
 This repository contains an interactive Streamlit dashboard for multi-asset portfolio construction and risk analysis, developed during my Master's in Accounting, Finance & Controlling. I am publishing it as one of several projects in my public portfolio, showcasing applied financial modelling and Python development skills for job applications.
 
 The dashboard lets a user pick one of four allocation archetypes — conservative through growth — built on asset-class/bucket level from investable ETF proxies, and answers three questions for that allocation: What has its historical risk/return profile actually been? How much does annual rebalancing change that profile, in both directions? And what does a forward-looking, block-bootstrapped Monte Carlo simulation say about a given starting capital over a given horizon? All metrics shown are computed on real, dividend-adjusted ETF price history — none of the numbers below are estimated or reproduced from a third-party source.
@@ -130,7 +132,7 @@ The backtest window is bounded by ETF inception, not by the underlying asset cla
 
 ## Tech Stack
 
-Python 3.14 · pandas · numpy · streamlit · plotly · SQLite
+Python 3.10+ (CI runs 3.12) · pandas · numpy · streamlit · plotly · SQLite
 
 ```bash
 git clone https://github.com/carlos-schwiening/portfolio-construction-lab
@@ -145,6 +147,24 @@ be imported cleanly (`from core.risk_engine import ...`) without path hacks.
 the package itself.
 
 The dashboard reads from a local SQLite database (`data/portfolio_data.db`) that is not included in this repository. To populate it, set an FMP API key and run `python data/db_pull_v1.py` first — see Data below.
+
+## Tests & Continuous Integration
+
+[GitHub Actions](.github/workflows/ci.yml) runs on every push to `main`: **20 tests** (`python -m pytest`) plus **mypy** over `core/`, the risk and Monte Carlo engines.
+
+`core/` holds pure calculation code — values in, values out, no database and no
+network — which is what makes it testable in isolation. Deterministic measures
+are checked against known values (maximum drawdown, VaR/CVaR 95%, the missing
+2008 return). The Monte Carlo engine is tested on properties instead: identical
+output under a fixed seed, terminal wealth scaling linearly with start capital,
+a return haircut lowering the median outcome, and percentile paths starting at
+the initial capital in the correct order. The rebalancing logic is pinned by
+tests showing that buy-and-hold weights drift while annual rebalancing resets
+them at the year boundary — and that both agree before the first boundary.
+
+Both checks run in a clean environment on Ubuntu with Python 3.12, so a package
+that happens to be installed locally cannot hide a missing entry in
+`pyproject.toml`.
 
 ---
 
