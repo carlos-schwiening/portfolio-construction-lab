@@ -132,7 +132,7 @@ The backtest window is bounded by ETF inception, not by the underlying asset cla
 
 ## Tech Stack
 
-Python 3.10+ (CI runs 3.12) · pandas · numpy · streamlit · plotly · SQLite
+Python 3.12+ (CI runs 3.12 and 3.13) · pandas · numpy · streamlit · plotly · SQLite
 
 ```bash
 git clone https://github.com/carlos-schwiening/portfolio-construction-lab

@@ -7,7 +7,7 @@ name = "portfolio-construction-lab"
 version = "0.1.0"
 description = "Multi-asset portfolio construction dashboard with a transparent risk engine (VaR/CVaR, drawdown) and block-bootstrap Monte Carlo wealth projection."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "pandas",
     "numpy",
