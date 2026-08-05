@@ -28,14 +28,14 @@ The example above shows the conservative archetype with a $100,000 start capital
 
 All figures are annually rebalanced, computed over the full common backtest window (2007-12-19 to today).
 
-| Archetype | Equity % | CAGR | Vol | Max DD | VaR 95% | CVaR 95% | Worst Year | 2008 |
+| Archetype | Equity % | CAGR | Vol | Max DD | VaR 95% (daily) | CVaR 95% (daily) | Worst Year | 2008 |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | conservative | 12.5% | 4.73% | 6.07% | -18.78% | -0.52% | -0.89% | 2022 (-14.55%) | -2.50% |
 | moderate | 45.9% | 6.34% | 9.51% | -28.03% | -0.89% | -1.45% | 2008 (-15.07%) | -15.07% |
 | balanced | 70.1% | 7.13% | 14.11% | -41.61% | -1.29% | -2.16% | 2008 (-26.24%) | -26.24% |
 | growth | 84.3% | 8.67% | 16.59% | -47.31% | -1.51% | -2.55% | 2008 (-31.18%) | -31.18% |
 
-CAGR, volatility, and max drawdown all increase monotonically from conservative to growth, as expected for the equity share rising from 12.5% to 84.3%. The more interesting result is in the Worst Year column: conservative's single worst calendar year was 2022 (-14.55%), not 2008 (-2.50%) — while moderate, balanced, and growth all had their worst year in 2008. This is direct evidence of a regime difference rather than a coincidence: in 2008, bonds rallied as a flight-to-quality asset and cushioned conservative's heavy fixed-income weight, while equities cratered and dominated the other three archetypes' losses; in 2022, bonds and equities sold off together (the same stock-bond correlation breakdown documented below), so conservative's bond-heavy construction offered no cushion that year and lost more than it did in the supposedly worse 2008 crisis.
+CAGR, volatility, and max drawdown all increase monotonically from conservative to growth, as expected for the equity share rising from 12.5% to 84.3%. The more interesting result is in the Worst Year column: conservative's single worst calendar year was 2022 (-14.55%), not 2008 (-2.50%) — while moderate, balanced, and growth all had their worst year in 2008. This is direct evidence of a regime difference rather than a coincidence: in 2008, bonds rallied as a flight-to-quality asset and cushioned conservative's heavy fixed-income weight, while equities cratered and dominated the other three archetypes' losses; in 2022, bonds and equities sold off together (the same stock-bond correlation breakdown documented below), so conservative's bond-heavy construction offered no cushion that year and lost more than it did in the supposedly worse 2008 crisis. One caveat on that Worst Year column: it is variant-dependent. Under buy-and-hold rather than annual rebalancing, moderate's worst calendar year is also 2022 (-16.14%) rather than 2008 — drifting weights had let its equity share grow, changing which crisis hurt most.
 
 ---
 
@@ -146,11 +146,11 @@ be imported cleanly (`from core.risk_engine import ...`) without path hacks.
 `pip install -r requirements.txt` still works too if you don't want to install
 the package itself.
 
-The dashboard reads from a local SQLite database (`data/portfolio_data.db`) that is not included in this repository. To populate it, set an FMP API key and run `python data/db_pull_v1.py` first — see Data below.
+The dashboard reads from a local SQLite database (`data/portfolio_data.db`) that is not included in this repository. To populate it, set an FMP API key and run `python data/db_pull_v1.py` first — see Data below. The pull script uses `data/fmp_client.py`, a self-contained client for the two price endpoints it needs, so a fresh clone runs without any path outside the repository.
 
 ## Tests & Continuous Integration
 
-[GitHub Actions](.github/workflows/ci.yml) runs on every push to `main`: **20 tests** (`python -m pytest`) plus **mypy** over `core/`, the risk and Monte Carlo engines.
+[GitHub Actions](.github/workflows/ci.yml) runs on every push to `main`: **20 tests** (`python -m pytest`) plus **mypy** over `core/`, the risk and Monte Carlo engines. Five of those tests need the price database and skip cleanly when it is absent, so a fresh checkout without `data/portfolio_data.db` — the CI case — runs 15 and skips the Monte Carlo module rather than failing on a missing file.
 
 `core/` holds pure calculation code — values in, values out, no database and no
 network — which is what makes it testable in isolation. Deterministic measures

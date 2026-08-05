@@ -14,7 +14,9 @@ import os
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-sys.path.insert(0, r"C:\Python\Shared")
+# fmp_client.py sits next to this file, so a fresh clone works without any
+# path outside the repository.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fmp_client import get_historical_price_full
 
 import pandas as pd
