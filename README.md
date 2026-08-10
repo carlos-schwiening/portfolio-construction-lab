@@ -14,6 +14,8 @@ Each archetype is a set of target weights across nine ETF-proxy buckets (US/non-
 
 The common backtest window is determined at runtime from the data itself (the latest inception date across the nine proxies), not hardcoded — it currently starts 2007-12-19 and runs to today (~18.5 years, 4,658 trading days), bounded by the youngest bond proxies (EMB, BIL). All prices are dividend-adjusted (total return), which matters most for the bond sleeves, where most of the historical return comes from distributions rather than price appreciation. Real Assets and Alternatives are intentionally left out of the active universe — no clean, low-cost ETF proxy with sufficient history exists for either — and the remaining bucket weights are renormalized accordingly.
 
+**[SOURCES.md](SOURCES.md)** documents every source individually — what each one is used for, how to check it, and the limits that actually constrain the results: the 5,000-row cap that truncates silently, why the prices have to be dividend-adjusted, why QAI's 2009 inception would have dragged the window onto the market bottom, and what the one forward-looking lever in the simulation does (it is zero by default).
+
 ---
 
 ## Dashboard
