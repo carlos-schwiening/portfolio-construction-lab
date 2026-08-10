@@ -150,9 +150,27 @@ the package itself.
 
 The dashboard reads from a local SQLite database (`data/portfolio_data.db`) that is not included in this repository. To populate it, set an FMP API key and run `python data/db_pull_v1.py` first — see Data below. The pull script uses `data/fmp_client.py`, a self-contained client for the two price endpoints it needs, so a fresh clone runs without any path outside the repository.
 
+## Verifying the published figures
+
+```bash
+python verify.py            # structural facts and allocation properties
+python verify.py --full     # also recomputes from data/portfolio_data.db
+```
+
+Nine checks. A number in a README has no link to the code that made it — this
+one named the mypy scope as `core/` after `reporting/` had been added.
+
+- **Structural** — test count against `pytest`, documented mypy scope against the workflow, the four archetypes against the code
+- **Properties** — every archetype's weights sum to 1.0, QAI appears in none of them, the bootstrap draws six-month blocks, the return haircut defaults to zero
+- **From the data** (`--full`) — the window start and the trading-day count, derived from the database rather than read from the README
+
+The window start is the interesting one: the README claims it is *derived*, not
+chosen. `verify.py` derives it the same way — latest inception among the proxies
+in use — and gets 2007-12-19 with 4,658 trading days.
+
 ## Tests & Continuous Integration
 
-[GitHub Actions](.github/workflows/ci.yml) runs on every push to `main`: **20 tests** (`python -m pytest`) plus **mypy** over `core/`, the risk and Monte Carlo engines. Five of those tests need the price database and skip cleanly when it is absent, so a fresh checkout without `data/portfolio_data.db` — the CI case — runs 15 and skips the Monte Carlo module rather than failing on a missing file.
+[GitHub Actions](.github/workflows/ci.yml) runs on every push to `main`: **20 tests** (`python -m pytest`) plus **mypy** over `core/` and `reporting/`. Five of those tests need the price database and skip cleanly when it is absent, so a fresh checkout without `data/portfolio_data.db` — the CI case — runs 15 and skips the Monte Carlo module rather than failing on a missing file.
 
 `core/` holds pure calculation code — values in, values out, no database and no
 network — which is what makes it testable in isolation. Deterministic measures

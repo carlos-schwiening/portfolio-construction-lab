@@ -158,13 +158,12 @@ different from an 18-year sample.
 
 ---
 
-## What this file does not yet do
+## Checking the numbers: `python verify.py`
 
-`credit-risk-validation` has a `verify` command that recomputes every published
-figure from its source and reports a mismatch as a finding. This project does
-not have one, and the README carries a table of computed risk metrics per
-archetype.
+Nine checks; `--full` adds the ones that need the database. Structural facts,
+allocation properties, and the derived backtest window recomputed from the data
+rather than read from the README.
 
-Those figures were correct when written. Nothing checks that they still are —
-and in the sibling repository a published test count was wrong for months for
-exactly that reason.
+Two things it cannot check: the book's figures (deliberately not reproduced, so
+there is nothing to compare) and whether the stored prices are the real ones —
+for that, spot-check a date against a public total-return chart.
