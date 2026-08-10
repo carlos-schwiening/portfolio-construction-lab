@@ -69,7 +69,9 @@ def hex_to_rgba(hex_color, alpha):
     return f"rgba({r},{g},{b},{alpha})"
 
 
-# region Reusable Chart Builders
+# ----------------------------------------------------------------------------
+# region REUSABLE CHART BUILDERS
+# ----------------------------------------------------------------------------
 def styled_distribution_histogram(values, title, x_axis_label, y_axis_label="Number of Simulated Paths",
                                    source_text=SOURCE_TEXT, n_bins=100):
     """

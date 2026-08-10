@@ -15,7 +15,9 @@ defined below — RAW_WEIGHTS was specified with exactly these 4 keys, not 5.
 list_archetypes() reflects the actual data, not a hardcoded count.
 """
 
-# region Imports & Configuration
+# ----------------------------------------------------------------------------
+# region IMPORTS & CONFIGURATION
+# ----------------------------------------------------------------------------
 import sys
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
 
@@ -23,7 +25,9 @@ TOLERANCE = 1e-9
 # endregion
 
 
-# region Parameters — Proxy Labels + Raw Weights
+# ----------------------------------------------------------------------------
+# region PARAMETERS — PROXY LABELS + RAW WEIGHTS
+# ----------------------------------------------------------------------------
 PROXY_LABELS: dict[str, str] = {
     "SPY": "US Stocks", "EFA": "Non-US Developed", "EEM": "EM Stocks",
     "AGG": "Core Bonds", "TLT": "Long Treasury", "HYG": "High Yield",
@@ -41,7 +45,9 @@ RAW_WEIGHTS: dict[str, dict[str, float]] = {
 # endregion
 
 
-# region Functions
+# ----------------------------------------------------------------------------
+# region FUNCTIONS
+# ----------------------------------------------------------------------------
 def get_normalized_weights(archetype: str) -> dict[str, float]:
     """Returns bucket weights for one archetype, scaled so they sum exactly to 1.0."""
     if archetype not in RAW_WEIGHTS:
@@ -64,7 +70,9 @@ def list_archetypes() -> list[str]:
 # endregion
 
 
-# region Self-Test
+# ----------------------------------------------------------------------------
+# region SELF-TEST
+# ----------------------------------------------------------------------------
 if __name__ == "__main__":
     print("=== allocations.py — Self-Test ===\n")
     for archetype in list_archetypes():

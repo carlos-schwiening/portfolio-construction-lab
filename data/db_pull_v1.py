@@ -10,7 +10,9 @@ across all tickers) is reported at the end but NOT applied here — windowing
 happens later in the analysis layer, so the DB stays reusable.
 """
 
-# region Imports & Configuration
+# ----------------------------------------------------------------------------
+# region IMPORTS & CONFIGURATION
+# ----------------------------------------------------------------------------
 import sys
 import os
 import sqlite3
@@ -31,7 +33,9 @@ SLEEP_SEC  = 0.3
 # endregion
 
 
-# region Parameters — v1 Ticker Set (one proxy per bucket)
+# ----------------------------------------------------------------------------
+# region PARAMETERS — V1 TICKER SET (ONE PROXY PER BUCKET)
+# ----------------------------------------------------------------------------
 TICKER_MAP = [
     {"ticker": "SPY", "bucket": "US Stocks (broad)"},
     {"ticker": "EFA", "bucket": "Non-US Developed Stocks"},
@@ -47,7 +51,9 @@ TICKER_MAP = [
 # endregion
 
 
-# region Database Setup
+# ----------------------------------------------------------------------------
+# region DATABASE SETUP
+# ----------------------------------------------------------------------------
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 cursor.execute("""
@@ -62,7 +68,9 @@ conn.commit()
 # endregion
 
 
-# region Pull + Store
+# ----------------------------------------------------------------------------
+# region PULL + STORE
+# ----------------------------------------------------------------------------
 # ─────────────────────────────────────────────────────────────
 # Fetches dividend-adjusted close prices via get_dividend_adjusted_price_full
 # (chunked, no 5000-row cap) and writes the COMPLETE available history per
@@ -115,7 +123,9 @@ conn.close()
 # endregion
 
 
-# region Output
+# ----------------------------------------------------------------------------
+# region OUTPUT
+# ----------------------------------------------------------------------------
 df_summary = pd.DataFrame(summary)
 print("\n=== DB Pull Summary (per symbol) ===\n")
 print(df_summary.to_string(index=False))
@@ -127,7 +137,9 @@ print(f"\nDatabase saved: {DB_PATH}")
 # endregion
 
 
-# region Interpretation
+# ----------------------------------------------------------------------------
+# region INTERPRETATION
+# ----------------------------------------------------------------------------
 print("\n=== Interpretation ===")
 
 failed = df_summary[df_summary["row_count"] == 0]
@@ -146,7 +158,9 @@ if common_start is not None:
 # endregion
 
 
-# region Legende
+# ----------------------------------------------------------------------------
+# region LEGENDE
+# ----------------------------------------------------------------------------
 print("\n=== Legende ===")
 print("symbol        = ETF proxy ticker (one per asset-class bucket, v1 set)")
 print("bucket        = Asset-class bucket this ticker represents")

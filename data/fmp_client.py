@@ -15,7 +15,9 @@ Raises a clear error if none of the three yields a key, instead of failing later
 with an opaque HTTP 401.
 """
 
-# region Imports & Configuration
+# ----------------------------------------------------------------------------
+# region IMPORTS & CONFIGURATION
+# ----------------------------------------------------------------------------
 import os
 import time
 from datetime import date, timedelta
@@ -58,7 +60,9 @@ def _resolve_api_key() -> str:
 # endregion
 
 
-# region HTTP helper
+# ----------------------------------------------------------------------------
+# region HTTP HELPER
+# ----------------------------------------------------------------------------
 def _fetch(endpoint: str, params: dict, context: str) -> list:
     """GET against the FMP API. Returns a list of dicts, or [] on error/empty."""
     params = dict(params)
@@ -89,7 +93,9 @@ def _fetch(endpoint: str, params: dict, context: str) -> list:
 # endregion
 
 
-# region Price history
+# ----------------------------------------------------------------------------
+# region PRICE HISTORY
+# ----------------------------------------------------------------------------
 def _fetch_chunked_history(endpoint: str, symbol: str, years: int, chunk_years: int) -> pd.DataFrame:
     """
     The FMP historical-price endpoints cap a single response at 5000 rows

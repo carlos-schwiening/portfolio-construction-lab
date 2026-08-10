@@ -44,7 +44,9 @@ aggregate metrics. The __main__ block below is purely a thin terminal report
 on top of these functions; running this file directly is unaffected.
 """
 
-# region Imports & Configuration
+# ----------------------------------------------------------------------------
+# region IMPORTS & CONFIGURATION
+# ----------------------------------------------------------------------------
 import sys
 import os
 import sqlite3
@@ -108,7 +110,9 @@ ARCHETYPE_ORDER = list_archetypes()  # conservative -> growth, as defined in all
 # endregion
 
 
-# region Load Data
+# ----------------------------------------------------------------------------
+# region LOAD DATA
+# ----------------------------------------------------------------------------
 def load_price_matrix(db_path: str, tickers: list[str]) -> pd.DataFrame:
     """Loads adj_close for the given tickers from the prices table, pivoted to date x symbol."""
     conn = sqlite3.connect(db_path)
@@ -146,7 +150,9 @@ def load_common_daily_returns(
 # endregion
 
 
-# region Portfolio Construction (Buy-and-Hold vs Annual Rebalancing)
+# ----------------------------------------------------------------------------
+# region PORTFOLIO CONSTRUCTION (BUY-AND-HOLD VS ANNUAL REBALANCING)
+# ----------------------------------------------------------------------------
 def compute_portfolio_path(
     weights: dict[str, float], returns: pd.DataFrame, annual_rebalance: bool,
 ) -> tuple[pd.Series, pd.DataFrame]:
@@ -301,7 +307,9 @@ def compute_all_portfolios(
 # endregion
 
 
-# region Rolling Metrics (Buy-and-Hold)
+# ----------------------------------------------------------------------------
+# region ROLLING METRICS (BUY-AND-HOLD)
+# ----------------------------------------------------------------------------
 def get_rolling_vol_summary(
     bh_returns_by_archetype: dict[str, pd.Series], archetype_order: list[str] = ARCHETYPE_ORDER,
 ) -> pd.DataFrame:
@@ -355,7 +363,9 @@ def get_spy_agg_correlation_checkpoints(
 # endregion
 
 
-# region Drift Demonstration (Buy-and-Hold Equity Weight)
+# ----------------------------------------------------------------------------
+# region DRIFT DEMONSTRATION (BUY-AND-HOLD EQUITY WEIGHT)
+# ----------------------------------------------------------------------------
 def get_drift_demo(
     bh_weights_by_archetype: dict[str, pd.DataFrame],
     archetype: str = DRIFT_DEMO_ARCHETYPE,
@@ -381,7 +391,9 @@ def get_drift_demo(
 # endregion
 
 
-# region Demo Run
+# ----------------------------------------------------------------------------
+# region DEMO RUN
+# ----------------------------------------------------------------------------
 if __name__ == "__main__":
     daily_returns, common_start, first_valid_per_ticker = load_common_daily_returns()
 
@@ -399,7 +411,9 @@ if __name__ == "__main__":
     max_equity_weight = drift_demo["max_equity_weight"]
     max_equity_weight_date = drift_demo["max_equity_weight_date"]
 
-    # region Output
+    # ------------------------------------------------------------------------
+    # region OUTPUT
+    # ------------------------------------------------------------------------
     print("=== Risk Engine — Buy-and-Hold vs Annual Rebalancing, All Archetypes ===\n")
 
     print(f"Common backtest window start (latest inception across the 9 tickers): {common_start.date()}")
@@ -439,7 +453,9 @@ if __name__ == "__main__":
     print(df_corr_display.to_string(index=False))
     # endregion
 
-    # region Interpretation
+    # ------------------------------------------------------------------------
+    # region INTERPRETATION
+    # ------------------------------------------------------------------------
     print("\n=== Interpretation ===")
 
     print(">>> Buy-and-hold weights drift freely with cumulative performance for the whole window; "
@@ -498,7 +514,9 @@ if __name__ == "__main__":
               "post-2021-positive pattern — flagging explicitly, see checkpoint table above.")
     # endregion
 
-    # region Legende
+    # ------------------------------------------------------------------------
+    # region LEGENDE
+    # ------------------------------------------------------------------------
     print("\n=== Legende ===")
     print("ARCHETYPE_ORDER          = The 4 archetypes from allocations.list_archetypes(), conservative -> growth")
     print("common_start             = Latest per-ticker inception date — the common backtest window start, determined at runtime")

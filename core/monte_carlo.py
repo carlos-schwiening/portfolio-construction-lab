@@ -30,7 +30,9 @@ for why that is optimistic, and why this script's Sensitivity section exists.
 No charts here (come with the dashboard). No DB writes.
 """
 
-# region Imports & Configuration
+# ----------------------------------------------------------------------------
+# region IMPORTS & CONFIGURATION
+# ----------------------------------------------------------------------------
 import sys
 from typing import Literal, Union, cast, overload
 
@@ -55,14 +57,18 @@ DEMO_HAIRCUT          = 0.02  # 2pp annual haircut for the Sensitivity section (
 # endregion
 
 
-# region Load Data (Common Window, Daily Returns)
+# ----------------------------------------------------------------------------
+# region LOAD DATA (COMMON WINDOW, DAILY RETURNS)
+# ----------------------------------------------------------------------------
 # Reuses core/risk_engine.py's loader (same 9 active buckets, same runtime-determined
 # common window) instead of duplicating the DB/window logic here.
 daily_returns, common_start, first_valid_per_ticker = load_common_daily_returns()
 # endregion
 
 
-# region Rebalanced Portfolio -> Monthly Returns
+# ----------------------------------------------------------------------------
+# region REBALANCED PORTFOLIO -> MONTHLY RETURNS
+# ----------------------------------------------------------------------------
 def get_historical_monthly_returns(archetype: str) -> np.ndarray:
     """
     Rebalanced (annual_rebalance=True) daily returns for the archetype, via
@@ -77,7 +83,9 @@ def get_historical_monthly_returns(archetype: str) -> np.ndarray:
 # endregion
 
 
-# region Monte Carlo Simulation
+# ----------------------------------------------------------------------------
+# region MONTE CARLO SIMULATION
+# ----------------------------------------------------------------------------
 def _simulate_block_bootstrap_paths(
     archetype: str, start_capital: float, horizon_years: int, n_paths: int,
     block_months: int, annual_return_haircut: float, seed: int,
@@ -206,7 +214,9 @@ def simulate_wealth_paths_percentiles(
 # endregion
 
 
-# region Demo Run
+# ----------------------------------------------------------------------------
+# region DEMO RUN
+# ----------------------------------------------------------------------------
 if __name__ == "__main__":
     print(f"=== Monte Carlo Terminal Wealth Projection ===\n"
           f"start_capital = {DEMO_START_CAPITAL:,.0f}, horizon_years = {DEMO_HORIZON_YEARS}\n")
@@ -278,7 +288,9 @@ if __name__ == "__main__":
     print(df_sensitivity_display.to_string())
     # endregion (Demo Run output)
 
-    # region Interpretation
+    # ------------------------------------------------------------------------
+    # region INTERPRETATION
+    # ------------------------------------------------------------------------
     print("\n=== Interpretation ===")
 
     print(">>> Results are NOMINAL — no inflation adjustment. Over a 20-year horizon this materially "
@@ -304,7 +316,9 @@ if __name__ == "__main__":
           "shifts such as the stock-bond correlation flip (see core/risk_engine.py) are NOT modeled here.")
     # endregion
 
-    # region Legende
+    # ------------------------------------------------------------------------
+    # region LEGENDE
+    # ------------------------------------------------------------------------
     print("\n=== Legende ===")
     print("simulate_terminal_wealth = Block-bootstrap Monte Carlo function; returns an array of n_paths terminal wealth outcomes")
     print("block_months             = Length of each resampled block of consecutive historical months (default 6)")

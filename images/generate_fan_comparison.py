@@ -16,7 +16,9 @@ Uses the same simulate_wealth_paths_percentiles() function and parameters
 same methodology, not a separate one-off calculation.
 """
 
-# region Imports & Configuration
+# ----------------------------------------------------------------------------
+# region IMPORTS & CONFIGURATION
+# ----------------------------------------------------------------------------
 import sys
 import os
 
@@ -41,7 +43,9 @@ OUTPUT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wealth_p
 # endregion
 
 
-# region Simulate
+# ----------------------------------------------------------------------------
+# region SIMULATE
+# ----------------------------------------------------------------------------
 # Same methodology/parameters as the dashboard's fan chart (core/monte_carlo.py
 # simulate_wealth_paths_percentiles), just called directly here instead of via
 # Streamlit's cache, since this is a one-off static export.
@@ -59,7 +63,9 @@ shared_y_max = max(conservative_paths["p95"].max(), growth_paths["p95"].max()) *
 # endregion
 
 
-# region Build Chart
+# ----------------------------------------------------------------------------
+# region BUILD CHART
+# ----------------------------------------------------------------------------
 def add_fan_band(fig, df, col, show_legend):
     """Adds the two nested percentile bands + median line for one archetype to one subplot column."""
     fig.add_trace(go.Scatter(
@@ -126,7 +132,9 @@ fig.add_annotation(
 # endregion
 
 
-# region Export
+# ----------------------------------------------------------------------------
+# region EXPORT
+# ----------------------------------------------------------------------------
 try:
     fig.write_image(OUTPUT_PATH, scale=2)
 except Exception as e:
@@ -138,7 +146,9 @@ except Exception as e:
 # endregion
 
 
-# region Interpretation
+# ----------------------------------------------------------------------------
+# region INTERPRETATION
+# ----------------------------------------------------------------------------
 print("=== Wealth Projection Fan Chart Comparison ===")
 print(f">>> Shared y-axis upper bound: ${shared_y_max:,.0f} (growth's P95 ceiling x 1.05 headroom).")
 print(f">>> Conservative P5-P95 at year {HORIZON_YEARS}: "
@@ -151,7 +161,9 @@ print(f">>> PNG saved: {OUTPUT_PATH}")
 # endregion
 
 
-# region Legende
+# ----------------------------------------------------------------------------
+# region LEGENDE
+# ----------------------------------------------------------------------------
 print("\n=== Legende ===")
 print("START_CAPITAL  = Starting capital fed into both simulations ($100,000)")
 print("HORIZON_YEARS  = Projection horizon in years (20)")

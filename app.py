@@ -19,7 +19,9 @@ the surrounding Streamlit UI uses the matching light theme in
 .streamlit/config.toml — no dark-UI/light-chart mismatch.
 """
 
-# region Imports & Configuration
+# ----------------------------------------------------------------------------
+# region IMPORTS & CONFIGURATION
+# ----------------------------------------------------------------------------
 import sys
 import os
 
@@ -41,7 +43,9 @@ from plot_style import (
 # endregion
 
 
-# region Cached Data / Engine Calls
+# ----------------------------------------------------------------------------
+# region CACHED DATA / ENGINE CALLS
+# ----------------------------------------------------------------------------
 @st.cache_data(show_spinner="Loading price history from the database...")
 def cached_load_data():
     """Common-window daily returns for the 9 active buckets. Cached so the DB is read once per session."""
@@ -82,7 +86,9 @@ def cached_rolling_correlation():
 # endregion
 
 
-# region Sidebar Inputs
+# ----------------------------------------------------------------------------
+# region SIDEBAR INPUTS
+# ----------------------------------------------------------------------------
 st.set_page_config(page_title="Portfolio Construction Lab", layout="wide")
 
 st.sidebar.header("Inputs")
@@ -92,7 +98,9 @@ horizon_years = st.sidebar.slider("Investment horizon (years)", min_value=1, max
 # endregion
 
 
-# region Header
+# ----------------------------------------------------------------------------
+# region HEADER
+# ----------------------------------------------------------------------------
 st.title("Portfolio Construction Lab")
 st.write(
     "Explores multi-asset allocation archetypes on an asset-class/ETF-proxy level: "
@@ -101,7 +109,9 @@ st.write(
 # endregion
 
 
-# region Section 1 — Risk/Return Metrics (Annually Rebalanced)
+# ----------------------------------------------------------------------------
+# region SECTION 1 — RISK/RETURN METRICS (ANNUALLY REBALANCED)
+# ----------------------------------------------------------------------------
 st.header(f"Risk/Return Metrics — {archetype} (annually rebalanced)")
 
 metrics = cached_archetype_metrics(archetype)["rebalanced"]
@@ -117,7 +127,9 @@ col6.metric("2008 Return", f"{year_2008:+.2%}" if year_2008 is not None else "N/
 # endregion
 
 
-# region Section 2 — Monte Carlo Projection
+# ----------------------------------------------------------------------------
+# region SECTION 2 — MONTE CARLO PROJECTION
+# ----------------------------------------------------------------------------
 st.header("Monte Carlo Wealth Projection")
 st.caption(
     "Block-bootstrap simulation from historical monthly returns of the annually "
@@ -209,7 +221,9 @@ st.plotly_chart(fan_fig, width="stretch")
 # endregion
 
 
-# region Section 3 — Supporting Visualizations (Sequential)
+# ----------------------------------------------------------------------------
+# region SECTION 3 — SUPPORTING VISUALIZATIONS (SEQUENTIAL)
+# ----------------------------------------------------------------------------
 st.header("Supporting Visualizations")
 
 # ---- 3.1: Stock-Bond Correlation Regime (portfolio-independent) ----

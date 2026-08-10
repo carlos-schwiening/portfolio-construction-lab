@@ -18,7 +18,9 @@ import pytest
 from risk_engine import compute_portfolio_path, compute_aggregate_metrics, value_at_or_before
 
 
-# region compute_portfolio_path
+# ----------------------------------------------------------------------------
+# region COMPUTE_PORTFOLIO_PATH
+# ----------------------------------------------------------------------------
 def _two_asset_returns():
     """4 business days straddling a year boundary (2020-12-30 .. 2021-01-05), 2 tickers."""
     dates = pd.to_datetime(["2020-12-30", "2020-12-31", "2021-01-04", "2021-01-05"])
@@ -51,7 +53,9 @@ def test_buy_and_hold_and_rebalanced_agree_before_any_year_boundary():
 # endregion
 
 
-# region compute_aggregate_metrics
+# ----------------------------------------------------------------------------
+# region COMPUTE_AGGREGATE_METRICS
+# ----------------------------------------------------------------------------
 def _drawdown_test_series():
     """5 daily returns with a known, hand-verified drawdown/VaR/CVaR shape."""
     return pd.Series([0.0, -0.10, -0.05, 0.20, 0.0], index=pd.date_range("2021-01-01", periods=5, freq="B"))
@@ -75,7 +79,9 @@ def test_worst_year_and_missing_2008_return():
 # endregion
 
 
-# region value_at_or_before
+# ----------------------------------------------------------------------------
+# region VALUE_AT_OR_BEFORE
+# ----------------------------------------------------------------------------
 def test_value_at_or_before_returns_last_value_up_to_date():
     series = pd.Series([1.0, 2.0, 3.0], index=pd.to_datetime(["2021-01-01", "2021-01-05", "2021-01-10"]))
     date_used, value = value_at_or_before(series, "2021-01-07")

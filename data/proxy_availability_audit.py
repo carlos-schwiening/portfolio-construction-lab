@@ -8,7 +8,9 @@ book-index position. No portfolio math here — this is a data audit only,
 run before any full historical download into a database.
 """
 
-# region Imports & Configuration
+# ----------------------------------------------------------------------------
+# region IMPORTS & CONFIGURATION
+# ----------------------------------------------------------------------------
 import sys
 import os
 
@@ -28,7 +30,9 @@ CUTOFF_DATE = pd.Timestamp("2003-01-01")
 # endregion
 
 
-# region Parameters — Book Index -> ETF Proxy Mapping
+# ----------------------------------------------------------------------------
+# region PARAMETERS — BOOK INDEX -> ETF PROXY MAPPING
+# ----------------------------------------------------------------------------
 # proxy_type "primary"   = clean single ETF proxy for this book-index position
 # proxy_type "candidate" = no clean single proxy exists; ticker is one of several
 #                          approximation candidates evaluated for later design decision
@@ -86,7 +90,9 @@ PROXY_MAP = [
 # endregion
 
 
-# region Audit Proxy Availability
+# ----------------------------------------------------------------------------
+# region AUDIT PROXY AVAILABILITY
+# ----------------------------------------------------------------------------
 # ─────────────────────────────────────────────────────────────
 # Pulls historical prices for every proxy via the shared FMP wrapper and
 # records earliest/latest date, number of data points, and whether the
@@ -130,7 +136,9 @@ df_audit = df_audit.sort_values("earliest_date", na_position="last").reset_index
 # endregion
 
 
-# region Output — Terminal Table + CSV Export
+# ----------------------------------------------------------------------------
+# region OUTPUT — TERMINAL TABLE + CSV EXPORT
+# ----------------------------------------------------------------------------
 print("\n=== Proxy Availability Audit (sorted by earliest start date) ===\n")
 print(df_audit.to_string(index=False))
 
@@ -139,7 +147,9 @@ print(f"\nCSV saved: {OUTPUT_CSV}")
 # endregion
 
 
-# region Interpretation
+# ----------------------------------------------------------------------------
+# region INTERPRETATION
+# ----------------------------------------------------------------------------
 print("\n=== Interpretation ===")
 
 no_data       = df_audit[df_audit["data_points"] == 0]
@@ -166,7 +176,9 @@ if len(no_clean_proxy) > 0:
 # endregion
 
 
-# region Legende
+# ----------------------------------------------------------------------------
+# region LEGENDE
+# ----------------------------------------------------------------------------
 print("\n=== Legende ===")
 print("category            = Asset class bucket from the book's index list (US Equity, Core Bonds, ...)")
 print("book_index           = Original book-index position being approximated")
