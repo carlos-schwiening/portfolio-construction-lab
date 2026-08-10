@@ -19,4 +19,4 @@ dependencies = [
 dev = ["pytest", "mypy", "pandas-stubs"]
 
 [tool.setuptools]
-packages = ["core"]
+packages = ["core", "reporting"]

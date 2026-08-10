@@ -23,7 +23,8 @@ import sys
 import os
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(PROJECT_ROOT, "core"))  # monte_carlo, plot_style
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "core"))       # monte_carlo
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "reporting"))  # plot_style
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots

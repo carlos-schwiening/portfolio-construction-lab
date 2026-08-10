@@ -13,7 +13,7 @@ rebalancing for the selected archetype, and Monte Carlo return-assumption
 sensitivity. No new analytics here — everything calls existing functions in
 core/risk_engine.py and core/monte_carlo.py.
 
-Visual design (Step 8): all charts use the shared core/plot_style.py template
+Visual design (Step 8): all charts use the shared reporting/plot_style.py template
 (same light Bloomberg/FT visual language as semiconductor-risk-analysis) and
 the surrounding Streamlit UI uses the matching light theme in
 .streamlit/config.toml — no dark-UI/light-chart mismatch.
@@ -26,7 +26,10 @@ import sys
 import os
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(PROJECT_ROOT, "core"))  # allocations, risk_engine, monte_carlo, plot_style
+# core/ is pure computation; the Plotly template is presentation and lives in
+# reporting/ — the split the project structure is built on.
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "core"))       # allocations, risk_engine, monte_carlo
+sys.path.insert(0, os.path.join(PROJECT_ROOT, "reporting"))  # plot_style
 
 import numpy as np
 import pandas as pd
@@ -148,7 +151,7 @@ mc_col2.metric("5th Percentile", f"${p5_wealth:,.0f}")
 mc_col3.metric("95th Percentile", f"${p95_wealth:,.0f}")
 mc_col4.metric("Shortfall Probability", f"{shortfall_prob:.2%}", help=f"Share of paths ending below ${start_capital:,.0f}")
 
-# Histogram styling lives in core/plot_style.py (styled_distribution_histogram)
+# Histogram styling lives in reporting/plot_style.py (styled_distribution_histogram)
 # so it's defined once and reused by any future distribution chart, not
 # maintained inline here. See that function's docstring for what it encapsulates
 # (100 bins by default, BLUE_1 fill, thin bin borders, no reference lines, full
