@@ -2,9 +2,15 @@
 
 [![CI](https://github.com/carlos-schwiening/portfolio-construction-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/carlos-schwiening/portfolio-construction-lab/actions/workflows/ci.yml)
 
-This repository contains an interactive Streamlit dashboard for multi-asset portfolio construction and risk analysis, developed during my Master's in Accounting, Finance & Controlling. I am publishing it as one of several projects in my public portfolio, showcasing applied financial modelling and Python development skills for job applications.
+An interactive Streamlit dashboard for multi-asset portfolio construction and risk analysis, built during my MSc in Accounting, Finance & Controlling.
 
-The dashboard lets a user pick one of four allocation archetypes — conservative through growth — built on asset-class/bucket level from investable ETF proxies, and answers three questions for that allocation: What has its historical risk/return profile actually been? How much does annual rebalancing change that profile, in both directions? And what does a forward-looking, block-bootstrapped Monte Carlo simulation say about a given starting capital over a given horizon? All metrics shown are computed on real, dividend-adjusted ETF price history — none of the numbers below are estimated or reproduced from a third-party source.
+Pick one of four allocation archetypes — conservative through growth, defined at asset-class level from investable ETF proxies — and the dashboard answers three questions for it:
+
+- What has its historical risk/return profile actually been?
+- How much does annual rebalancing change that profile, in both directions?
+- What does a block-bootstrapped Monte Carlo say about a given capital over a given horizon?
+
+Every metric is computed from real dividend-adjusted ETF price history. Nothing here is estimated or copied from a third-party source.
 
 ---
 
@@ -37,15 +43,17 @@ All figures are annually rebalanced, computed over the full common backtest wind
 | balanced | 70.1% | 7.13% | 14.11% | -41.61% | -1.29% | -2.16% | 2008 (-26.24%) | -26.24% |
 | growth | 84.3% | 8.67% | 16.59% | -47.31% | -1.51% | -2.55% | 2008 (-31.18%) | -31.18% |
 
-CAGR, volatility, and max drawdown all increase monotonically from conservative to growth, as expected for the equity share rising from 12.5% to 84.3%. The more interesting result is in the Worst Year column: conservative's single worst calendar year was 2022 (-14.55%), not 2008 (-2.50%) — while moderate, balanced, and growth all had their worst year in 2008. This is direct evidence of a regime difference rather than a coincidence: in 2008, bonds rallied as a flight-to-quality asset and cushioned conservative's heavy fixed-income weight, while equities cratered and dominated the other three archetypes' losses; in 2022, bonds and equities sold off together (the same stock-bond correlation breakdown documented below), so conservative's bond-heavy construction offered no cushion that year and lost more than it did in the supposedly worse 2008 crisis. One caveat on that Worst Year column: it is variant-dependent. Under buy-and-hold rather than annual rebalancing, moderate's worst calendar year is also 2022 (-16.14%) rather than 2008 — drifting weights had let its equity share grow, changing which crisis hurt most.
+CAGR, volatility and max drawdown rise monotonically from conservative to growth, as the equity share goes from 12.5% to 84.3%. Expected, and not the interesting part.
+
+**The Worst Year column is.** conservative's worst calendar year was 2022 (-14.55%), not 2008 (-2.50%) — while moderate, balanced and growth all had theirs in 2008. That is a regime difference rather than a coincidence: in 2008 bonds rallied as a flight-to-quality asset and cushioned conservative's heavy fixed-income weight while equities cratered; in 2022 bonds and equities sold off together (the correlation breakdown documented below), so the same bond-heavy construction offered no cushion and lost more than in the supposedly worse crisis.
+
+The column is variant-dependent, though. Under buy-and-hold, moderate's worst year is also 2022 (-16.14%) rather than 2008 — drifting weights had let its equity share grow, changing which crisis hurt most.
 
 ---
 
 ## Allocation Archetypes
 
-Four archetypes span the risk spectrum from defensive to growth-oriented, each a fixed set of target weights across the nine active buckets. conservative is dominated by core bonds and high yield with a small equity sleeve; moderate adds meaningful international equity exposure and a cash buffer; balanced and growth shift the weight progressively toward US and non-US developed equities, with growth holding almost no fixed income at all.
-
-Normalized weights (%), conservative to growth:
+Four fixed sets of target weights across the nine active buckets. Normalized weights (%):
 
 | Bucket | conservative | moderate | balanced | growth |
 |---|---:|---:|---:|---:|
@@ -65,7 +73,17 @@ Real Assets and Alternatives (QAI as a rough HFRI proxy) are excluded from this 
 
 ## Risk Engine
 
-Historical metrics are computed directly from daily dividend-adjusted ETF returns: CAGR from the cumulative total-return path, annualized volatility as the standard deviation of daily returns scaled by sqrt(252), max drawdown as the largest peak-to-trough decline of that path, and VaR/CVaR 95% as the empirical 5th-percentile daily return and the mean of returns at or below it. Two portfolio construction variants are computed side by side: buy-and-hold, where weights start at target and drift freely with cumulative performance for the whole window, and annually rebalanced, where weights reset to target on the first trading day of every calendar year using only already-realized prior-day information (no lookahead). Neither variant models transaction costs or taxes.
+All metrics come straight from daily dividend-adjusted ETF returns:
+
+| Metric | How it is computed |
+|--------|--------------------|
+| CAGR | from the cumulative total-return path |
+| Volatility | std. dev. of daily returns × √252 |
+| Max drawdown | largest peak-to-trough decline of that path |
+| VaR 95% | empirical 5th-percentile daily return |
+| CVaR 95% | mean of the returns at or below that percentile |
+
+Two construction variants run side by side: **buy-and-hold**, where weights start at target and drift with performance, and **annually rebalanced**, where they reset on the first trading day of each calendar year using only prior-day information — no lookahead. Neither models transaction costs or taxes.
 
 | Archetype | Vol (BH) | Vol (Rebalanced) | Max DD (BH) | Max DD (Rebalanced) | CAGR (BH) | CAGR (Rebalanced) |
 |---|---:|---:|---:|---:|---:|---:|
@@ -128,7 +146,11 @@ The same caveat from the table above applies here, and is more visible in this c
 
 ## Limitations
 
-The backtest window is bounded by ETF inception, not by the underlying asset classes' actual history — 2007-12-19 reflects when the youngest proxy (EMB) started trading, not how far back core or government bonds, US equities, or EM equities could otherwise be analyzed. Every bucket is approximated by a single liquid ETF proxy rather than the broader index it represents, which introduces tracking error the engine does not separately quantify. Real Assets and Alternatives are absent from the active universe entirely, for the reasons noted above, so none of the figures reflect any inflation-hedging or alternative-strategy exposure a real allocation might include. Monte Carlo results are nominal, not real (inflation-adjusted) — over a 20-year horizon that is a material simplification, not a rounding error. The block bootstrap preserves historical clustering and fat tails better than a normal-distribution simulation, but it still assumes the underlying return distribution is stationary going forward; regime shifts such as the stock-bond correlation flip documented above are present in the historical sample the bootstrap draws from, but the bootstrap does not model a forward shift to a new regime beyond what already occurred historically.
+- **The window is bounded by ETF inception, not by the asset classes.** 2007-12-19 is when the youngest proxy (EMB) began trading — core bonds, US equities and EM equities could each be analysed much further back.
+- **Every bucket is one liquid ETF, not the index it stands for**, which introduces tracking error the engine does not separately quantify.
+- **Real Assets and Alternatives are absent from the active universe**, so no figure here reflects the inflation-hedging or alternative-strategy exposure a real allocation might carry.
+- **Monte Carlo results are nominal, not inflation-adjusted.** Over a 20-year horizon that is a material simplification, not a rounding error.
+- **The bootstrap assumes the return distribution is stationary going forward.** It preserves the clustering and fat tails in the sample — the stock-bond correlation flip above is in there — but it cannot produce a regime that never occurred in the window it draws from.
 
 ---
 
@@ -143,12 +165,11 @@ pip install -e .
 streamlit run app.py
 ```
 
-This installs the project as a package (see `pyproject.toml`), so `core/` can
-be imported cleanly (`from core.risk_engine import ...`) without path hacks.
-`pip install -r requirements.txt` still works too if you don't want to install
-the package itself.
+- `pip install -e .` installs the project as a package, so `from core.risk_engine import ...` works without path hacks. `pip install -r requirements.txt` also works if you would rather not install the package.
+- The dashboard reads a local SQLite database, `data/portfolio_data.db`, which is **not** in this repository.
+- To populate it: set an FMP API key and run `python data/db_pull_v1.py`. The pull uses `data/fmp_client.py`, self-contained for the two price endpoints it needs, so a fresh clone reaches nothing outside the repo.
 
-The dashboard reads from a local SQLite database (`data/portfolio_data.db`) that is not included in this repository. To populate it, set an FMP API key and run `python data/db_pull_v1.py` first — see Data below. The pull script uses `data/fmp_client.py`, a self-contained client for the two price endpoints it needs, so a fresh clone runs without any path outside the repository.
+A paid FMP key is required for that pull — the free tier answers the price endpoints with HTTP 402.
 
 ## Verifying the published figures
 
