@@ -104,6 +104,11 @@ def _simulate_block_bootstrap_paths(
     Returns wealth_paths: np.ndarray, shape (n_paths, horizon_years*12) — the
     full monthly wealth value of every simulated path (month 1..horizon*12;
     month 0 / start_capital is not included here, callers add it if needed).
+
+    block_months = 6 is a model parameter with no source. Single-month draws
+    would destroy the volatility clustering the bootstrap exists to keep, and
+    blocks long enough to hold a full crisis would leave too few distinct blocks
+    to resample from. Six is the compromise; nothing in the literature fixes it.
     """
     monthly_returns = get_historical_monthly_returns(archetype)
     monthly_haircut = annual_return_haircut / MONTHS_PER_YEAR

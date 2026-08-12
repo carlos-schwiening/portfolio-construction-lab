@@ -99,6 +99,9 @@ DB_PATH      = os.path.join(PROJECT_ROOT, "data", "portfolio_data.db")
 
 ACTIVE_TICKERS    = list(PROXY_LABELS.keys())  # the 9 active buckets, QAI already excluded
 TRADING_DAYS_YEAR = 252
+# Chosen, not prescribed. 95% is the common reporting level for a portfolio
+# figure; a bank's regulatory VaR runs at 99%. Raising it here would move every
+# tail number in the dashboard, so it lives as one named constant.
 VAR_CONFIDENCE    = 0.95
 ROLLING_WINDOW    = 252  # ~1 trading year
 
