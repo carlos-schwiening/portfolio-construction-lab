@@ -34,6 +34,7 @@ No charts here (come with the dashboard). No DB writes.
 # region IMPORTS & CONFIGURATION
 # ----------------------------------------------------------------------------
 import sys
+from functools import lru_cache
 from typing import Literal, Union, cast, overload
 
 sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
@@ -62,7 +63,16 @@ DEMO_HAIRCUT          = 0.02  # 2pp annual haircut for the Sensitivity section (
 # ----------------------------------------------------------------------------
 # Reuses core/risk_engine.py's loader (same 9 active buckets, same runtime-determined
 # common window) instead of duplicating the DB/window logic here.
-daily_returns, common_start, first_valid_per_ticker = load_common_daily_returns()
+#
+# Loaded on first use, not at import. A module-level call would make importing
+# this file require a SQLite database that is gitignored, so anyone cloning the
+# repo could not even import it before running the data pull — and core/ is
+# supposed to hold computation, not I/O. Cached, so the DB is still read once.
+@lru_cache(maxsize=1)
+def _daily_returns() -> pd.DataFrame:
+    """The common-window daily returns for the nine active buckets."""
+    daily_returns, _common_start, _first_valid_per_ticker = load_common_daily_returns()
+    return daily_returns
 # endregion
 
 
@@ -76,7 +86,7 @@ def get_historical_monthly_returns(archetype: str) -> np.ndarray:
     """
     weights = get_normalized_weights(archetype)
     rebalanced_daily_returns, _weights_over_time = compute_portfolio_path(
-        weights, daily_returns, annual_rebalance=True
+        weights, _daily_returns(), annual_rebalance=True
     )
     monthly_returns = (1 + rebalanced_daily_returns).resample("ME").prod() - 1
     return np.asarray(monthly_returns.values)

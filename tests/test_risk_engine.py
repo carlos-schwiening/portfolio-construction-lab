@@ -72,6 +72,24 @@ def test_var_and_cvar_95():
     assert metrics["cvar_95"] == pytest.approx(-0.10)
 
 
+def test_worst_year_ignores_a_stub_year():
+    """
+    A partial year must not win the worst-year label. The backtest window opens
+    mid-December and ends on whatever today is, so both edge years are stubs; a
+    handful of bad days there would otherwise outrank a real crisis year.
+    """
+    full = pd.Series(-0.0005, index=pd.date_range("2022-01-03", periods=260, freq="B"))
+    stub = pd.Series(-0.05, index=pd.date_range("2023-01-02", periods=5, freq="B"))
+    metrics = compute_aggregate_metrics(pd.concat([full, stub]))
+    assert metrics["worst_year"] == 2022
+
+
+def test_worst_year_falls_back_when_no_year_is_complete():
+    """A short series still reports a worst year — a wrong label beats none."""
+    metrics = compute_aggregate_metrics(_drawdown_test_series())
+    assert metrics["worst_year"] == 2021
+
+
 def test_worst_year_and_missing_2008_return():
     metrics = compute_aggregate_metrics(_drawdown_test_series())
     assert metrics["worst_year"] == 2021

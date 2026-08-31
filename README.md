@@ -191,7 +191,7 @@ in use — and gets 2007-12-19 with 4,658 trading days.
 
 ## Tests & Continuous Integration
 
-[GitHub Actions](.github/workflows/ci.yml) runs on every push to `main`: **20 tests** (`python -m pytest`) plus **mypy** over `core/` and `reporting/`. Five of those tests need the price database and skip cleanly when it is absent, so a fresh checkout without `data/portfolio_data.db` — the CI case — runs 15 and skips the Monte Carlo module rather than failing on a missing file.
+[GitHub Actions](.github/workflows/ci.yml) runs on every push to `main`: **22 tests** (`python -m pytest`) plus **mypy** over `core/` and `reporting/`. Five of those tests need the price database and skip cleanly when it is absent, so a fresh checkout without `data/portfolio_data.db` — the CI case — runs 17 and skips the Monte Carlo module rather than failing on a missing file.
 
 `core/` holds pure calculation code — values in, values out, no database and no
 network — which is what makes it testable in isolation. Deterministic measures

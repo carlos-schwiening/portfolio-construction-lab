@@ -104,6 +104,12 @@ TRADING_DAYS_YEAR = 252
 # tail number in the dashboard, so it lives as one named constant.
 VAR_CONFIDENCE    = 0.95
 ROLLING_WINDOW    = 252  # ~1 trading year
+# Chosen, not prescribed. A calendar year counts as complete for the worst-year
+# figure once it holds this many trading days — 90% of a normal year, which
+# tolerates a heavy holiday calendar but rejects a stub. The backtest window
+# starts mid-December and ends today, so without this both edge years compete
+# against full ones on a handful of days.
+MIN_DAYS_FULL_YEAR = int(0.9 * TRADING_DAYS_YEAR)
 
 CORRELATION_CHECKPOINT_YEARS = [2008, 2012, 2016, 2020, 2022, 2024]
 EQUITY_TICKERS    = ["SPY", "EFA", "EEM"]
@@ -215,9 +221,18 @@ def compute_aggregate_metrics(portfolio_returns: pd.Series) -> AggregateMetrics:
     cvar_95 = portfolio_returns[portfolio_returns <= var_95].mean()
 
     portfolio_dates = cast(pd.DatetimeIndex, portfolio_returns.index)
-    calendar_year_returns = (1 + portfolio_returns).groupby(portfolio_dates.year).prod() - 1
-    worst_year = int(calendar_year_returns.idxmin())
-    worst_year_return = calendar_year_returns.min()
+    by_year = (1 + portfolio_returns).groupby(portfolio_dates.year)
+    calendar_year_returns = by_year.prod() - 1
+
+    # The first and last calendar year are almost always stubs: the window opens
+    # mid-December and closes on whatever today is. Compounding nine days into a
+    # "year" and letting it compete with 2008 would put a rounding artefact in a
+    # dashboard tile. Full years only — unless there are none, in which case a
+    # wrong label beats no figure at all.
+    full_years = calendar_year_returns[by_year.size() >= MIN_DAYS_FULL_YEAR]
+    ranked = full_years if not full_years.empty else calendar_year_returns
+    worst_year = int(ranked.idxmin())
+    worst_year_return = ranked.min()
     year_2008_return = calendar_year_returns.get(2008, None)
 
     return {
