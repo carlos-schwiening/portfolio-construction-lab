@@ -69,10 +69,22 @@ DEMO_HAIRCUT          = 0.02  # 2pp annual haircut for the Sensitivity section (
 # repo could not even import it before running the data pull — and core/ is
 # supposed to hold computation, not I/O. Cached, so the DB is still read once.
 @lru_cache(maxsize=1)
-def _daily_returns() -> pd.DataFrame:
-    """The common-window daily returns for the nine active buckets."""
+def _load_daily_returns() -> pd.DataFrame:
+    """The common-window daily returns for the nine active buckets, read once."""
     daily_returns, _common_start, _first_valid_per_ticker = load_common_daily_returns()
     return daily_returns
+
+
+def _daily_returns() -> pd.DataFrame:
+    """
+    A private copy of the cached returns.
+
+    The cache hands every caller the same DataFrame, so one in-place edit
+    anywhere would poison every later simulation — and the resulting wrong
+    numbers would carry no trace of where they came from. The copy costs a few
+    hundred kilobytes per call and removes that failure mode entirely.
+    """
+    return _load_daily_returns().copy()
 # endregion
 
 
